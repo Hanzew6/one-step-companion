@@ -1,0 +1,110 @@
+const assert = require('node:assert/strict');
+const path = require('node:path');
+const fs = require('node:fs');
+const {chromium} = require(process.env.PLAYWRIGHT_MODULE || 'playwright');
+const M = require('../dist/model.js');
+const url = process.env.PET_DEMO_URL || require('node:url').pathToFileURL(path.resolve(__dirname,'../dist/index.html')).href;
+const output = path.resolve(__dirname, '../test-results/screenshots');
+(async () => {
+  const browser = await chromium.launch({channel:'chrome', headless:true});
+  const errors = [];
+  const context = await browser.newContext({viewport:{width:1440,height:950}, reducedMotion:'reduce'});
+  const page = await context.newPage();
+  page.on('pageerror', error => errors.push(error.message));
+  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  const click = action => page.locator(`[data-pet="${action}"]:visible`).first().click();
+  const state = () => page.evaluate(() => window.OneStepCompanion.snapshot());
+  const menu = () => page.locator('#pet-character').click({button:'right'});
+  try {
+    await page.clock.install();
+    await page.goto(url);
+    await page.locator('#pet-character').click();
+    await page.locator('#bubble-content h2').waitFor();
+    assert.match(await page.locator('#bubble-content').innerText(), /打开练习/);
+    assert.equal((await state()).selected, null);
+    await page.locator('#pet-character').click();
+    assert.equal((await state()).selected, null, 'left click must not start work');
+    fs.mkdirSync(output, {recursive:true});
+    await page.screenshot({path:path.join(output,'pet-desktop.png')});
+    console.log('PASS current-step preview does not mutate task selection');
+
+    await click('begin');
+    assert.equal((await state()).tasks.find(t=>t.id==='stats').started, true);
+    await click('finish');
+    assert.equal((await state()).tasks.find(t=>t.id==='stats').index, 1);
+    assert.match(await page.locator('#bubble-content').innerText(), /圈出已经给出的条件/);
+    await menu(); await page.screenshot({path:path.join(output,'pet-menu.png')}); await click('open');
+    await page.locator('[data-action="pick:reading"]').click();
+    await click('close'); await page.locator('#pet-character').click();
+    assert.match(await page.locator('#bubble-content').innerText(), /找到这次要读的文章/);
+    console.log('PASS completion and task switches share one live state');
+
+    await click('help');
+    assert.equal((await state()).view, 'help');
+    await page.locator('[data-action="adopt"]').click();
+    await click('close'); await page.locator('#pet-character').click();
+    assert.match(await page.locator('#bubble-content').innerText(), /打开课程阅读清单/);
+    await click('finish');
+    assert.equal((await state()).tasks.find(t=>t.id==='reading').index, 0, 'auxiliary completion must not skip original step');
+    console.log('PASS assistance returns to original task instead of skipping it');
+
+    await menu(); await click('rest');
+    assert.equal((await state()).view, 'activity');
+    assert.equal(await page.locator('#pet-widget').getAttribute('data-mood'), 'sleep');
+    await click('dismiss'); await page.clock.fastForward(310000);
+    assert.equal(await page.locator('#pet-bubble').isVisible(), false);
+    await page.locator('#pet-character').click(); await click('resume');
+    await menu(); await click('snooze'); await click('dismiss');
+    await page.clock.fastForward(299000);
+    assert.equal(await page.locator('#pet-bubble').isVisible(), false);
+    await page.clock.fastForward(2000);
+    assert.equal(await page.locator('#pet-bubble').isVisible(), true);
+    assert.match(await page.locator('#bubble-content').innerText(), /轻轻提醒/);
+    await click('quiet'); await click('dismiss'); await page.clock.fastForward(600000);
+    assert.equal(await page.locator('#pet-bubble').isVisible(), false);
+    await page.reload();
+    assert.match(await page.locator('#reminder-status').innerText(), /今天安静/);
+    console.log('PASS timed reminder, rest suppression, snooze and persistent quiet mode');
+
+    if(await page.locator('#pet-bubble').isVisible()) await click('dismiss');
+    const before = await state();
+    const rect = await page.locator('#pet-character').boundingBox();
+    await page.mouse.move(rect.x+rect.width/2,rect.y+rect.height/2);
+    await page.mouse.down(); await page.mouse.move(120,250,{steps:12}); await page.mouse.up();
+    assert.deepEqual(await state(), before);
+    assert.equal(await page.locator('#pet-bubble').isVisible(), false, 'drag must not also click');
+    await page.locator('#pet-character').focus(); await page.keyboard.press('Shift+F10');
+    assert.equal(await page.locator('#pet-menu').isVisible(), true);
+    await page.keyboard.press('End');
+    assert.equal(await page.evaluate(()=>document.activeElement.dataset.pet), 'quiet');
+    await page.keyboard.press('Escape');
+    console.log('PASS drag does not trigger click; keyboard opens and navigates menu');
+
+    await page.reload(); await menu(); await click('open');
+    await page.screenshot({path:path.join(output,'pet-main-window.png')});
+    await click('close');
+    for (const width of [320,390,760,1024]) {
+      await page.setViewportSize({width,height:width===320?640:844});
+      await page.reload();
+      assert(await page.evaluate(()=>document.documentElement.scrollWidth<=innerWidth), 'horizontal overflow '+width);
+      await page.locator('#pet-menu-toggle').click();
+      const bounds = await page.locator('#pet-menu').boundingBox();
+      assert(bounds.x>=0&&bounds.y>=0&&bounds.x+bounds.width<=width, 'menu outside viewport '+width);
+      await click('open');
+      assert(await page.locator('#task-window').isVisible());
+      await click('close'); await page.locator('#pet-character').click();
+      if(width===390)await page.screenshot({path:path.join(output,'pet-mobile.png')});
+    }
+    console.log('PASS small screens keep menus and task window reachable');
+    assert.deepEqual(errors, []);
+    await context.close();
+    const blocked = await browser.newContext();
+    await blocked.addInitScript(()=>Object.defineProperty(window,'localStorage',{get(){throw Error('blocked');}}));
+    const p = await blocked.newPage(); await p.goto(url);
+    await p.locator('#pet-character').click();
+    assert.match(await p.locator('#storage-notice').textContent(), /无法保存/);
+    await p.locator('#bubble-actions [data-pet="begin"]').click();
+    assert.equal(await p.evaluate(()=>window.OneStepCompanion.snapshot().tasks[0].started),true);
+    console.log('PASS blocked storage still permits task actions');
+  } finally { await browser.close(); }
+})().catch(error=>{console.error(error);process.exitCode=1;});

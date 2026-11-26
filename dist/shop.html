@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><meta name="theme-color" content="#f4f3e9">
+<title>小伴 · 宠物商店</title><link rel="icon" href="data:,">
+<link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="wardrobe.css">
+<script src="model.js" defer></script><script src="wardrobe.js" defer></script><script src="shop.js" defer></script><script src="english.js" defer></script><script src="language.js" defer></script></head>
+<body class="shop-page">
+<header class="mast"><a class="brand" id="shop-back" href="index.html">← 返回桌宠</a><div class="language-picker" role="group" aria-label="Language / 语言"><button data-language="zh" lang="zh-CN">中文</button><button data-language="en" lang="en">EN</button></div></header>
+<main class="boutique">
+  <h1>小伴的装扮店</h1>
+  <p class="shop-intro">先挑一件试穿，喜欢再用任务赚到的爪币兑换。</p>
+  <section class="shop-growth" aria-label="宠物成长">
+    <div class="growth-heading"><strong id="level"></strong><span id="wallet"></span></div>
+    <progress id="xp-bar" aria-label="升级进度"></progress><p id="next-unlock"></p>
+
+  </section>
+  <div class="shop-layout">
+    <section class="fitting" id="fitting" aria-label="试衣镜" tabindex="-1">
+      <div class="mirror-heading"><h2>试衣镜</h2><span id="mirror-mode"></span></div>
+      <div class="mirror"><div class="model-cat"><img src="kitten/idle-still.webp" alt="小伴"><span class="wardrobe-layer" aria-hidden="true"></span></div></div>
+      <div class="pose-options" role="group" aria-label="预览姿势"><button data-pose="idle" aria-pressed="true">坐着</button><button data-pose="wave" aria-pressed="false">击掌</button><button data-pose="stretch" aria-pressed="false">伸展</button><button data-pose="sleep" aria-pressed="false">蜷睡</button></div>
+      <h3 id="item-title"></h3><p id="item-status"></p>
+      <button id="shop-action" class="shop-action" hidden disabled></button>
+      <a id="earn-link" class="earn-link" href="index.html#tasks">去做一个小步 →</a>
+      <button id="compare" class="compare" hidden>看当前穿戴</button>
+      <a class="choose-link" href="#shelf">挑选装扮 ↓</a>
+    </section>
+    <section class="shelf" id="shelf"><h2>挑选装扮</h2><div id="goods"></div></section>
+  </div>
+    <details class="shop-rules"><summary>经验和爪币怎么获得？</summary><p>每个新完成的正式小步共得 10 XP 和 2 爪币。拆成辅助动作时，先得一半，完成原步骤再得另一半。已有进度会计入等级，休息和重置演示都保留装扮与奖励。</p><p>书桌有两份示例作业。在「我的任务」添加论文示例后，三份作业共可完成九步。</p></details>
+  <div id="shop-notice" role="status" aria-live="polite"></div>
+</main></body></html>

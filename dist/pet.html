@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#e7eade">
+  <title>一步 · 小伴桌宠演示</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 40 40'%3E%3Ctext y='32' font-size='32'%3E🐱%3C/text%3E%3C/svg%3E">
+  <link rel="stylesheet" href="styles.css"><link rel="stylesheet" href="pet.css">
+  <script src="model.js" defer></script><script src="app.js" defer></script><script defer src="wardrobe.js"></script><script src="pet.js" defer></script>
+<link rel="stylesheet" href="wardrobe.css"><script defer src="english.js"></script><script defer src="language.js"></script></head>
+<body data-pet-demo="true">
+  <header class="desktop-bar"><div class="pet-brand"><span aria-hidden="true">✦</span> 一步 <i>/</i> 小伴</div><div class="language-picker" role="group" aria-label="Language / 语言"><button type="button" data-language="zh" lang="zh-CN">中文</button><button type="button" data-language="en" lang="en">EN</button></div><button data-pet="open" aria-controls="task-window" class="top-open">我的任务</button></header>
+  <main class="desktop-scene">
+    <div class="landscape landscape-back" aria-hidden="true"></div><div class="landscape landscape-front" aria-hidden="true"></div>
+    <section class="intro">
+      <h1>今天从哪一步开始？</h1>
+      <p class="intro-copy">点一下小猫，它会从当前作业里为你挑出一件小事。</p>
+      <div class="desk-task" id="desk-task"></div>
+      <div class="demo-tray"><button data-pet="step" class="first-step">查看下一步</button>
+      <a class="desk-shop-link" href="shop.html"><strong id="desk-level">Lv.1</strong> 宠物商店 <span aria-hidden="true">→</span></a></div>
+      <div class="desk-reminders"><p id="reminder-status" class="reminder-status" role="status"></p><button data-pet="remind">预览提醒</button></div>
+    </section>
+
+  </main>
+  <footer class="desktop-footer"><span>网页桌面演示 · 拖动小伴可以换个位置</span><span>固定案例 · 预写提示 · 页面关闭后不提醒</span></footer>
+
+  <div class="desk-backdrop" aria-hidden="true"></div>
+  <section id="task-window" class="task-window" aria-label="一步任务主界面" hidden>
+    <header class="window-bar"><span><i></i> 一步 · 我的任务</span><button data-pet="close">← 返回桌宠</button></header>
+    <div class="window-scroll"><div id="app" class="app" tabindex="-1"></div><div id="storage-notice" class="storage-notice" role="status" hidden></div>
+      <details id="demo-tools" class="demo-tools"><summary>演示情境</summary><div class="demo-content"><p>固定示例日期：<time id="demo-date"></time></p><div class="demo-controls"><button data-action="tomorrow" class="demo-action">模拟明天</button><button data-action="overdue" class="demo-action">查看逾期</button><button data-action="ask-reset" aria-expanded="false" aria-controls="reset-confirm" class="reset-button">重置任务演示</button></div></div><div id="reset-confirm" class="inline-panel" hidden><p>重置会清除这个浏览器里的示例进度和便签。</p><button data-action="cancel-reset" class="quiet">保留进度</button> <button data-action="reset" class="quiet">确认重置</button></div></details>
+      <p class="example-note">示例进度保存在这个浏览器。</p>
+    </div>
+  </section>
+  <aside id="pet-widget" class="pet-widget" aria-label="小伴桌宠">
+    <section id="pet-bubble" class="pet-bubble" aria-label="小伴的提示" hidden>
+      <div class="bubble-top"><span>小伴 <i>·</i> 陪你一步</span><button data-pet="dismiss" aria-label="收起提示">×</button></div>
+      <div id="bubble-content" aria-live="polite"></div>
+      <div id="bubble-actions" class="bubble-actions"></div>
+    </section>
+    <section id="pet-menu" class="pet-menu" aria-label="和小伴互动" hidden>
+      <div class="menu-heading">和小伴待一会儿 <span>✦</span></div>
+      <button data-pet="open"><span>▤</span>我的任务</button>
+      <button data-pet="step"><span>↗</span>现在做哪一步</button>
+      <div class="menu-divider"></div>
+      <button data-pet="shop"><span>✧</span>宠物商店</button>
+      <button data-pet="wave"><span>♡</span>和小猫击掌</button>
+      <button data-pet="stretch"><span>✧</span>伸个懒腰</button>
+      <button data-pet="rest"><span>☾</span>陪我休息一下</button>
+      <div class="menu-divider"></div>
+      <button data-pet="snooze"><span>◷</span>5 分钟后提醒</button>
+      <button data-pet="quiet" id="quiet-toggle"><span>◌</span>今天暂停提醒</button>
+    </section>
+    <div class="pet-perch">
+      <span class="pet-spark spark-one" aria-hidden="true">✦</span><span class="pet-spark spark-two" aria-hidden="true">♡</span><span class="sleep-mark" aria-hidden="true">z z Z</span>
+      <button id="pet-character" class="pet-character" aria-label="小伴：左键查看下一步，右键打开互动菜单；按住拖动" aria-haspopup="true" aria-controls="pet-menu" aria-expanded="false">
+        <img id="kitten-art" src="kitten/idle.webp" alt="" draggable="false" width="352" height="352"><span class="wardrobe-layer" aria-hidden="true"></span>
+      </button>
+      <button id="pet-menu-toggle" class="pet-name" data-pet="menu" aria-expanded="false" aria-controls="pet-menu"><b class="menu-closed-label">互动菜单</b><b class="menu-open-label">收起菜单</b> <span aria-hidden="true">···</span></button>
+    </div>
+  </aside>
+  <div id="toast" class="toast" role="status"></div>
+  <noscript>请启用 JavaScript 体验桌宠。</noscript>
+</body>
+</html>
+

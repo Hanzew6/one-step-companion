@@ -1,0 +1,20 @@
+{
+  "name": "one-step-adhd-demo",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Bilingual task companion with a watercolor kitten, step-by-step assignments and a pet wardrobe.",
+  "scripts": {
+    "start": "node server.cjs",
+    "test": "node --test tests/model.test.cjs",
+    "test:browser": "node tests/browser.cjs",
+    "test:pet": "node tests/pet-browser.cjs",
+    "test:ui": "node tests/browser.cjs && node tests/pet-browser.cjs && node tests/first-visit.cjs && node tests/task-journey.cjs && node tests/kitten-language.cjs && node tests/wardrobe.cjs && node tests/navigation.cjs"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "playwright": "1.62.1",
+    "sharp": "0.35.5"
+  }
+}
